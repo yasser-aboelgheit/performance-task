@@ -21,4 +21,4 @@ class UserSerializer(serializers.ModelSerializer):
 class SuperUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ( ,'is_superuser', 'is_staff')
+        fields = ('is_superuser', 'is_staff')
