@@ -1,5 +1,5 @@
 from rest_framework import generics
-from .serializers import AnswerSerializer, OutputSerializer
+from .serializers import QuizReportSerializer
 from .models import Answer, Question
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -7,12 +7,24 @@ from django.db.models import Count, Q, F
 import json
 from django.db.models import Prefetch
 from django.db.models import Value, IntegerField, CharField
-
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from performance_task.permissions import IsNotSuperUserButStaff
 class AnswerAPIView(APIView):
-
+    permission_classes = [IsNotSuperUserButStaff]
     def get(self, request, format=None):
+        serializer = QuizReportSerializer(data=self.request.GET)
+        serializer.is_valid(raise_exception=True)
         returned_data = {}
-        answers = Answer.objects.all().select_related("question", "choice").distinct()
+        data = serializer.validated_data
+        if data.get("from_date"):
+            data["created_at__gte"] = data.pop("from_date")
+        if data.get("to_date"):
+            data["created_at__lte"] = data.pop("to_date")
+
+        # print(data)
+        # print(filter(**data))
+        # queryset = Export.objects.filter().order_by("-created_at")
+        answers = Answer.objects.filter(**data).select_related("question", "choice").distinct()
         questions = Question.objects.all().prefetch_related("answers", "answers__choice").distinct()
         answer_dates = answers.values_list('created_at', flat=True)
 

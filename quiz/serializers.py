@@ -1,26 +1,24 @@
 from rest_framework import serializers
 from .models import Answer, Choice, Question
+import datetime
+import iso8601
+from django.core.exceptions import ValidationError
+from dateutil import parser
 
 
-class AnswerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Answer
-        fields = "__all__"
+class QuizReportSerializer(serializers.Serializer):
+    from_date = serializers.CharField(required=False)
+    to_date = serializers.CharField(required=False)
+    zeby = serializers.SerializerMethodField(read_only=True)
 
-class QuestionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Question
-        fields = "__all__"
+    def validate_from_date(self, value):
+        try:
+            return (parser.parse(value))
+        except:
+            raise ValidationError({'message': 'Please enter a valid start date'})
 
-class ChoiceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Choice
-        fields = "__all__"
-
-class OutputSerializer(serializers.Serializer):
-    text = serializers.CharField()
-    answers_count = serializers.CharField()
-    answers = serializers.SerializerMethodField(required=False)
-
-    def get_answers(self, obj):
-        return AnswerSerializer(Answer.objects.filter(question=obj), many=True).data
+    def validate_to_date(self, value):
+        try:
+            return (parser.parse(value))
+        except:
+            raise ValidationError({'message': 'Please enter a valid end date'})
