@@ -3,22 +3,19 @@ from .serializers import QuizReportSerializer
 from .models import Answer, Question
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.db.models import Count, Q, F, Max
+from django.db.models import Count
 import json
 from django.db.models import Prefetch
-from django.db.models import Value, IntegerField, CharField
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from performance_task.permissions import IsNotSuperUserButStaff
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.db.models import Value, DateField
 from datetime import datetime
 from silk.profiling.profiler import silk_profile
-from itertools import groupby
 
 
-class AnswerAPIView(APIView):
+class AnswerAPIViewOld(APIView):
     permission_classes = [IsNotSuperUserButStaff]
 
+    @silk_profile(name='AnswerAPIView Old')
     def get(self, request, format=None):
         serializer = QuizReportSerializer(data=self.request.GET)
         serializer.is_valid(raise_exception=True)
@@ -34,44 +31,26 @@ class AnswerAPIView(APIView):
         questions = (Question.objects.all(
         ).prefetch_related("answers").distinct())
         answer_dates = answers.values('created_at')
-        # import ipdb;ipdb.set_trace()
         for date in answer_dates:
             date = date.get("created_at")
             question_dict = {}
-            # questions_answered_on_date = questions.filter(answers__created_at=date).\
-            #     values("answers__choice__id", "answers__choice__text", "answers__id", "text", "answers__created_at")
-
-            # import ipdb;ipdb.set_trace()
-            # questions_answered_on_date_count = questions_answered_on_date.count()
-            # answers_text = [{o.get("text"): {"id": o.get("answers__id"),
-            #                 "choice": {"id": o.get("answers__choice__id"), "text": o.get("answers__choice__text")}}}
-            #                 for o in questions_answered_on_date]
-            # ANOTHER APPROACH
             answers_nw = questions.filter(answers__created_at=date).distinct().annotate(
                 answers_count=Count('answers'))
-            # .prefetch_related(
-            #      Prefetch(
-            #     "answers",
-            #     queryset=Answer.objects.filter(created_at=date)
-            # ))
-            # "answers").distinct()
             answers_content = [{k.text: [{"id": o.id,
                                           "choice": {"id": o.choice.id, "text": o.choice.text}}
                                          for o in k.answers.filter(created_at=date)],
                                 "answers_count": k.answers_count} for k in answers_nw]
-            # import ipdb;ipdb.set_trace()
             date_dict = {"questions_count": answers_nw.count()}
-            # date_dict.update(question_dict)
             answers_content.append(date_dict)
             returned_data[str(date)] = answers_content
 
         return Response(returned_data)
 
 
-class AnswerAPIView2(APIView):
-    # permission_classes = [IsNotSuperUserButStaff]
+class AnswerAPIView(APIView):
+    permission_classes = [IsNotSuperUserButStaff]
 
-    @silk_profile(name='View Blog Post')
+    @silk_profile(name='AnswerAPIView optimized')
     def get(self, request, format=None):
         serializer = QuizReportSerializer(data=self.request.GET)
         serializer.is_valid(raise_exception=True)
@@ -82,62 +61,23 @@ class AnswerAPIView2(APIView):
         if data.get("to_date"):
             data["created_at__lte"] = data.pop("to_date")
 
-        answers2 = Answer.objects.filter(
-            **data)
-        # questions = (Question.objects.all().prefetch_related("answers").distinct())
+        answers2 = Answer.objects.filter(**data)
         answer_dates = answers2.values_list('created_at', flat=True).distinct()
-        # print(answer_dates)
-        # import ipdb;ipdb.set_trace()
-        # Now I have questions of specific dates and their answers including choice
-        blabla = {}
+        questions_dates = {}
         for date in answer_dates:
             questions = (Question.objects.filter(answers__created_at=date)
                          .prefetch_related(Prefetch("answers",
                                                     queryset=Answer.objects.filter(created_at=date).
-                                                    select_related("choice"),
-                                                    to_attr="some_answers"))
-                         .annotate(answers_count=Count('answers'),
-                                   question_answered_at=Max(
-                                       "answers__created_at"))
-                         .order_by("question_answered_at"))
-            blabla[str(date)] = questions
+                                                    select_related("choice").defer(
+                                                        "updated_at"),
+                                                    to_attr="question_answers"))
+                         .annotate(answers_count=Count('answers')))
+            questions_dates[str(date)] = questions
 
-        # print(blabla)
-        # print(questions.count())
-        # for date in answer_dates:
-
-        #  annotate(question_answered_at=Value(, DateField())))
-        # questions = questions.annotate(question_answered_at=Max("answers__created_at"))
-        # questions., DateField())
-        # answers_text = [{o.get("text"): {"id": o.get("answers__id"),
-        #     "choice": {"id": o.get("answers__choice__id"), "text": o.get("answers__choice__text")}}}
-        #     for o in questions]
-
-        ###########################################################################################
-        answers_content = [{mydate: [{k.text: {"answers_count": k.answers_count,
-                                               "answers": [{"id": o.id,
-                                                            "choice": {"id": o.choice.id, "text": o.choice.text}}
-                                                           for o in k.some_answers if o.created_at == k.question_answered_at]},
-                                      "question_answered_at": k.question_answered_at} for k in questions]} for mydate, questions in blabla.items()]
-        # print(answers_content)
-        # answers_content.sort(key=lambda x: x['question_answered_at'])
-
-        # final = {}
-        # for key, value in groupby(answers_content, key=lambda x: x['question_answered_at']):
-        #     value = list(value)
-        #     value[0]["questions_count"] = len(value)
-        #     value[0].pop("question_answered_at")
-        #     final[str(key)] = value
-
+        answers_content = [{date: ([{question.text: {
+            "answers": [{"id": answer.id,
+                         "choice": {"id": answer.choice.id, "text": answer.choice.text}}
+                        for answer in question.question_answers] + [{"answers_count": question.answers_count}]},
+        } for question in questions] + [{"questions_count": questions.count()}]
+        )} for date, questions in questions_dates.items()]
         return Response(answers_content)
-
-        # Sh5ala zay el fol
-        # Now I have questions of specific dates and their answers including choice + answers_count
-
-        # questions = (Question.objects.filter().prefetch_related(Prefetch("answers",
-        #                                                               queryset=Answer.objects.all().\
-        #                                                               select_related(
-        #                                                                              "choice",
-        #                                                               ),
-        #                                                               to_attr="some_answers")).\
-        #              annotate(answers_count=Count('answers')))

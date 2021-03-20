@@ -11,9 +11,3 @@ urlpatterns = [
     path('quiz/', include('quiz.urls')),
 ]
 urlpatterns += [path('silk/', include('silk.urls', namespace='silk'))]
-
-# for i in range(10):
-#     Question.objects.create(text="BLABLA"+str(i))
-# for q in Question.objects.all():
-#     for i in range(10):
-#         Answer.objects.create(question=q, choice=Choice.objects.first())
