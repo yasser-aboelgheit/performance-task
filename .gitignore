@@ -3,4 +3,4 @@
 *.pyc
 */migrations
 */__pycache__
-quiz.json
+/quiz.json
