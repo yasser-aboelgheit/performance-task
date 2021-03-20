@@ -1,0 +1,106 @@
+[
+{
+  "model": "quiz.choice",
+  "pk": 1881,
+  "fields": {
+    "text": "choice A"
+  }
+},
+{
+  "model": "quiz.choice",
+  "pk": 1882,
+  "fields": {
+    "text": "Choice B"
+  }
+},
+{
+  "model": "quiz.choice",
+  "pk": 1883,
+  "fields": {
+    "text": "Choice C"
+  }
+},
+{
+  "model": "quiz.choice",
+  "pk": 1884,
+  "fields": {
+    "text": "Choice D"
+  }
+},
+{
+  "model": "quiz.question",
+  "pk": 486,
+  "fields": {
+    "text": "Hello Q1",
+    "choices": [
+      1881,
+      1882,
+      1883,
+      1884
+    ]
+  }
+},
+{
+  "model": "quiz.question",
+  "pk": 487,
+  "fields": {
+    "text": "Hello Question 2",
+    "choices": [
+      1881,
+      1882,
+      1883,
+      1884
+    ]
+  }
+},
+{
+  "model": "quiz.answer",
+  "pk": 39705,
+  "fields": {
+    "question": 486,
+    "choice": 1881,
+    "updated_at": "2021-03-20",
+    "created_at": "2021-03-20"
+  }
+},
+{
+  "model": "quiz.answer",
+  "pk": 39706,
+  "fields": {
+    "question": 486,
+    "choice": 1882,
+    "updated_at": "2021-03-20",
+    "created_at": "2020-02-02"
+  }
+},
+{
+  "model": "quiz.answer",
+  "pk": 39707,
+  "fields": {
+    "question": 487,
+    "choice": 1883,
+    "updated_at": "2021-03-20",
+    "created_at": "2020-02-02"
+  }
+},
+{
+  "model": "quiz.answer",
+  "pk": 39708,
+  "fields": {
+    "question": 486,
+    "choice": 1883,
+    "updated_at": "2021-03-20",
+    "created_at": "2021-03-20"
+  }
+},
+{
+  "model": "quiz.answer",
+  "pk": 39709,
+  "fields": {
+    "question": 486,
+    "choice": 1883,
+    "updated_at": "2021-03-20",
+    "created_at": "2021-03-20"
+  }
+}
+]
