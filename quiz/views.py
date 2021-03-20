@@ -61,8 +61,7 @@ class AnswerAPIView(APIView):
         if data.get("to_date"):
             data["created_at__lte"] = data.pop("to_date")
 
-        answers2 = Answer.objects.filter(**data)
-        answer_dates = answers2.values_list('created_at', flat=True).distinct()
+        answer_dates = Answer.objects.filter(**data).values_list('created_at', flat=True).distinct()
         questions_dates = {}
         for date in answer_dates:
             questions = (Question.objects.filter(answers__created_at=date)
