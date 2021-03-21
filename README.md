@@ -7,13 +7,12 @@ Notification service based on Django Rest framework
 * Swagger: API documentation
 * SQLite3: Database
 
-## APIs Documentation
-* Navigate to http://localhost:8000/doc, the url for swagger which is a service for automatic documentation of APIs.
+## APIs
 * Note the file xpay.postman_collection.json which is a postman collection I created for this task, you can easily import it and find a saved response for each API
 
 ## Installation
 
-after cloning the project and making sure that docker-compose is up and running
+after cloning the project
 - Install python 3.5
 - pip3 install -r requirements.txt
 - python3 manage.py makemigrations
