@@ -4,7 +4,7 @@ Notification service based on Django Rest framework
 ## Technologies
 
 * Django Rest Framework: Framework based on python used to create APIs 
-* Swagger: API documentation
+* Profiling: django-silk
 * SQLite3: Database
 
 ## APIs
@@ -24,3 +24,7 @@ after cloning the project
 
 ## Test
  python3 manage.py test
+
+## Profiling
+ Using silk package, you can access it through localhost:8000/silk
+![Screenshot from 2021-03-21 00-47-51](https://user-images.githubusercontent.com/21153250/111889988-186dc180-89ee-11eb-851e-81f65623dfe0.png)
