@@ -4,16 +4,15 @@ Notification service based on Django Rest framework
 ## Technologies
 
 * Django Rest Framework: Framework based on python used to create APIs 
-* Swagger: API documentation
+* Profiling: django-silk
 * SQLite3: Database
 
-## APIs Documentation
-* Navigate to http://localhost:8000/doc, the url for swagger which is a service for automatic documentation of APIs.
+## APIs
 * Note the file xpay.postman_collection.json which is a postman collection I created for this task, you can easily import it and find a saved response for each API
 
 ## Installation
 
-after cloning the project and making sure that docker-compose is up and running
+after cloning the project
 - Install python 3.5
 - pip3 install -r requirements.txt
 - python3 manage.py makemigrations
@@ -25,3 +24,7 @@ after cloning the project and making sure that docker-compose is up and running
 
 ## Test
  python3 manage.py test
+
+## Profiling
+ Using silk package, you can access it through localhost:8000/silk
+![Screenshot from 2021-03-21 00-47-51](https://user-images.githubusercontent.com/21153250/111889988-186dc180-89ee-11eb-851e-81f65623dfe0.png)
