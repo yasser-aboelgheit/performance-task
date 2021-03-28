@@ -58,31 +58,35 @@ class TestPassengerAPIView(APITestCase):
     def test_dates(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        answer_dates = [Answer.objects.values_list("created_at", flat=True)]
-        self.assertEqual(list(response.json().keys()).sort(), answer_dates.sort())
+        answer_dates = list(Answer.objects.values_list("created_at", flat=True))
+        response_answer_dates = [*response.json()[0]] + [*response.json()[1]]
+        self.assertEqual(response_answer_dates.sort(), answer_dates.sort())
 
     def test_questions_count(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         date_of_answer = str(self.answer.created_at)
         questions_count = Question.objects.filter(answers__created_at=date_of_answer).distinct().count()
-        self.assertEqual(response.json().get(date_of_answer)[1].get('questions_count'), questions_count)
+        date_of_answer_content = [i for i in response.json() if list(i.keys())[0] == date_of_answer]
+        self.assertEqual(date_of_answer_content[0]["2021-03-28"][1].get("questions_count"), questions_count)
 
     def test_question_text(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         date_of_answer = str(self.answer.created_at)
         question = Question.objects.filter(answers__created_at=date_of_answer).distinct().last()
-        self.assertEqual(sorted(response.json().get(date_of_answer)[0])[0], question.text)
+        date_of_answer_content = [i for i in response.json() if list(i.keys())[0] == date_of_answer]
+        question_text = (list(date_of_answer_content[0].get('2021-03-28')[0].keys()))[0]
+        self.assertEqual(question_text, question.text)
 
     def test_question_answers_count(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         date_of_answer = str(self.answer.created_at)
-        questions = Question.objects.filter(answers__created_at=date_of_answer).distinct().last()
-        response_question_text = [a for a in list(response.json().get(
-            date_of_answer)[0].keys()) if a != "questions_count"][0]
-        self.assertEqual(response.json().get(date_of_answer)[0].get('answers_count'), questions.answers.count())
+        question = Question.objects.filter(answers__created_at=date_of_answer).distinct().last()
+        date_of_answer_content = [i for i in response.json() if list(i.keys())[0] == date_of_answer]
+        answers_count = date_of_answer_content[0].get('2021-03-28')[0][question.text]['answers'][1].get('answers_count')
+        self.assertEqual(answers_count, question.answers.count())
 
     def test_question_answers_id(self):
         response = self.client.get(self.url)
@@ -90,8 +94,9 @@ class TestPassengerAPIView(APITestCase):
         date_of_answer = str(self.answer.created_at)
         question = Question.objects.filter(answers__created_at=date_of_answer).distinct().last()
         answer = Answer.objects.filter(question=question).last()
-        response_question_text = sorted(response.json().get(date_of_answer)[0])[0]
-        self.assertEqual(response.json().get(date_of_answer)[0].get(response_question_text)[0].get('id'), answer.id)
+        date_of_answer_content = [i for i in response.json() if list(i.keys())[0] == date_of_answer]
+        answer_id = date_of_answer_content[0].get('2021-03-28')[0][question.text]['answers'][0].get("id")
+        self.assertEqual(answer_id, answer.id)
 
     def test_question_answers_content(self):
         response = self.client.get(self.url)
@@ -99,8 +104,7 @@ class TestPassengerAPIView(APITestCase):
         date_of_answer = str(self.answer.created_at)
         question = Question.objects.filter(answers__created_at=date_of_answer).distinct().last()
         answer = Answer.objects.filter(question=question).last()
-        response_question_text = sorted(response.json().get(date_of_answer)[0])[0]
-        answer_content = response.json().get(date_of_answer)[0].get(response_question_text)[0]
-        self.assertEqual(answer_content.get("id"), answer.id)
+        date_of_answer_content = [i for i in response.json() if list(i.keys())[0] == date_of_answer]
+        answer_content = date_of_answer_content[0].get('2021-03-28')[0][question.text]['answers'][0]
         self.assertEqual(answer_content.get("choice").get("text"), answer.choice.text)
         self.assertEqual(answer_content.get("choice").get("id"), answer.choice.id)
